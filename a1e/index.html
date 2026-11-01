@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:">
 <title>Digitale Geräte im Alltag, Klasse A1e</title>
 <link rel="icon" href="data:,">
 <style>
@@ -262,6 +262,54 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px 16px 40px; }
 @media (orientation: landscape) and (min-width: 900px) {
   .ex-akku .zone, .ex-begriffe .zone { min-height: 180px; }
 }
+/* Herunterladen */
+body.modal-offen { overflow: hidden; }
+.btn-download { background: var(--bg); color: var(--dark); border: 2px solid var(--dark); }
+.modal {
+  position: fixed; inset: 0; z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(15, 76, 92, 0.55);
+}
+.modal[hidden] { display: none; }
+.modal-box {
+  width: 100%; max-width: 560px; max-height: calc(100vh - 32px); overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg); border-radius: 14px; padding: 20px 22px;
+  box-shadow: 0 12px 32px rgba(15, 76, 92, 0.35);
+}
+.modal-box h2 { margin: 0 0 14px; font-size: 22px; color: var(--dark); }
+.modal-box h2:focus { outline: none; }
+.feld { display: block; font-weight: 700; margin-bottom: 6px; }
+.modal-box input[type="text"] {
+  width: 100%; min-height: 48px; padding: 8px 12px;
+  font: inherit; font-size: 18px; color: var(--text);
+  border: 2px solid var(--dark); border-radius: 10px; background: var(--bg);
+}
+.modal-box input[type="text"]:focus { outline: 3px solid var(--accent); outline-offset: 2px; }
+.klein { font-size: 15px; margin: 6px 0 14px; }
+.modal-box fieldset { border: 0; padding: 0; margin: 0 0 12px; }
+.modal-box legend { font-weight: 700; padding: 0; margin-bottom: 6px; }
+.opt {
+  display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 12px;
+  margin-bottom: 8px; border: 2px solid var(--line); border-radius: 10px; cursor: pointer;
+  touch-action: manipulation;
+}
+.opt input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--accent); }
+.opt:has(input:checked) { border-color: var(--accent); background: var(--bg2); }
+.dl-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 12px; }
+.dl-row .btn { flex: 1 1 180px; }
+a.btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.dl-ready { border-top: 2px solid var(--bg2); padding-top: 12px; }
+.dl-ready[hidden] { display: none; }
+.dl-ready img {
+  display: block; max-width: 100%; max-height: 260px; margin: 0 auto 10px;
+  border: 1px solid var(--line); border-radius: 6px; background: #FFFFFF;
+}
+.dl-info { font-size: 15px; margin: 0 0 10px; overflow-wrap: anywhere; }
+.dl-fehler { color: var(--text); font-weight: 700; margin: 0; }
+.dl-fehler:empty { display: none; }
+.dl-ende { display: flex; justify-content: flex-end; margin-top: 4px; }
+
 @media (prefers-reduced-motion: reduce) {
   .zone { transition: none; }
   .ghost { transform: none; }
@@ -276,6 +324,33 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px 16px 40px; }
   <div class="tabs" role="tablist" aria-label="Übungen" id="tabs"></div>
   <div id="panels"></div>
 </main>
+<div class="modal" id="dl" hidden role="dialog" aria-modal="true" aria-labelledby="dl-title">
+  <div class="modal-box">
+    <h2 id="dl-title" tabindex="-1">Herunterladen</h2>
+    <label class="feld" for="dl-name">Name (freiwillig)</label>
+    <input id="dl-name" type="text" maxlength="40" autocomplete="off" autocapitalize="words" spellcheck="false">
+    <p class="klein">Der Name steht nur in der Datei. Er wird nicht gespeichert und nicht gesendet.</p>
+    <fieldset>
+      <legend>Was möchtest du herunterladen?</legend>
+      <label class="opt"><input type="radio" name="dl-umfang" id="dl-eine" value="eine" checked> <span id="dl-hier">Nur diese Übung</span></label>
+      <label class="opt"><input type="radio" name="dl-umfang" id="dl-alle" value="alle"> <span>Alle drei Übungen</span></label>
+    </fieldset>
+    <div class="dl-row">
+      <button type="button" class="btn btn-check" id="dl-png">Als Bild</button>
+      <button type="button" class="btn btn-check" id="dl-pdf">Als PDF</button>
+    </div>
+    <p class="dl-fehler" id="dl-fehler" aria-live="polite"></p>
+    <div class="dl-ready" id="dl-ready" hidden>
+      <img id="dl-preview" alt="Vorschau der Datei">
+      <p class="dl-info" id="dl-info" aria-live="polite"></p>
+      <div class="dl-row">
+        <a class="btn btn-check" id="dl-save" href="#" download>Datei speichern</a>
+        <button type="button" class="btn btn-shuffle" id="dl-share" hidden>Teilen oder sichern</button>
+      </div>
+    </div>
+    <div class="dl-ende"><button type="button" class="btn btn-shuffle" id="dl-close">Schliessen</button></div>
+  </div>
+</div>
 <noscript><p style="padding:16px">Bitte schalte JavaScript ein. Sonst funktionieren die Übungen nicht.</p></noscript>
 <script>
 "use strict";
@@ -649,6 +724,10 @@ function buildExercise(ex, index) {
   result.setAttribute("aria-live", "polite");
   toolbar.appendChild(btnCheck);
   toolbar.appendChild(btnShuffle);
+  var btnDownload = el("button", "btn btn-download", "Herunterladen");
+  btnDownload.type = "button";
+  btnDownload.addEventListener("click", function () { dlOeffnen(ex.id, btnDownload); });
+  toolbar.appendChild(btnDownload);
   toolbar.appendChild(result);
   section.appendChild(toolbar);
 
@@ -936,6 +1015,438 @@ function mischen(exId) {
   st.status.textContent = "";
   if (st.hinweis) st.hinweis.hidden = true;
 }
+
+/* Herunterladen als Bild oder PDF (alles entsteht auf dem Gerät) */
+var KLASSE = "A1e";
+var FONT = 'system-ui, -apple-system, "Segoe UI", Calibri, Carlito, Arial, sans-serif';
+var F = {
+  text: "#17202A", dark: "#0F4C5C", accent: "#0B7F8C", green: "#237A55", coral: "#D94A2E",
+  line: "#8FB3B9", bg2: "#E8F1F2", okBg: "#E4F2EB", badBg: "#FBE9E5"
+};
+var BREITE = 1000, RAND = 40, PAD = 12;
+
+function schrift(gewicht, groesse) { return gewicht + " " + groesse + "px " + FONT; }
+
+function umbrechen(ctx, text, maxW) {
+  var zeilen = [], zeile = "";
+  String(text).split(/\s+/).forEach(function (w) {
+    while (w.length > 1 && ctx.measureText(w).width > maxW) {
+      var n = w.length - 1;
+      while (n > 1 && ctx.measureText(w.slice(0, n)).width > maxW) n--;
+      if (zeile) { zeilen.push(zeile); zeile = ""; }
+      zeilen.push(w.slice(0, n));
+      w = w.slice(n);
+    }
+    var probe = zeile ? zeile + " " + w : w;
+    if (zeile && ctx.measureText(probe).width > maxW) { zeilen.push(zeile); zeile = w; }
+    else zeile = probe;
+  });
+  if (zeile) zeilen.push(zeile);
+  return zeilen;
+}
+
+function rundPfad(p, x, y, w, h, r) {
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
+  p.moveTo(x + r, y);
+  p.arcTo(x + w, y, x + w, y + h, r);
+  p.arcTo(x + w, y + h, x, y + h, r);
+  p.arcTo(x, y + h, x, y, r);
+  p.arcTo(x, y, x + w, y, r);
+  p.closePath();
+}
+
+function box(ctx, x, y, w, h, r, fuellung, rand, randBreite) {
+  ctx.beginPath();
+  rundPfad(ctx, x, y, w, h, r);
+  if (fuellung) { ctx.fillStyle = fuellung; ctx.fill(); }
+  if (rand) { ctx.strokeStyle = rand; ctx.lineWidth = randBreite || 2; ctx.stroke(); }
+}
+
+function zahl(e, a) { return parseFloat(e.getAttribute(a)) || 0; }
+
+// Zeichnet die einfachen SVG-Symbole der Seite auf das Canvas
+function symbolZeichnen(ctx, svg, x, y, groesse, farbe) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(groesse / 48, groesse / 48);
+  ctx.lineWidth = 2.6;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  Array.prototype.forEach.call(svg.children, function (e) {
+    var tag = e.tagName.toLowerCase(), p = new Path2D();
+    if (tag === "rect") rundPfad(p, zahl(e, "x"), zahl(e, "y"), zahl(e, "width"), zahl(e, "height"), zahl(e, "rx"));
+    else if (tag === "circle") p.arc(zahl(e, "cx"), zahl(e, "cy"), zahl(e, "r"), 0, Math.PI * 2);
+    else if (tag === "line") { p.moveTo(zahl(e, "x1"), zahl(e, "y1")); p.lineTo(zahl(e, "x2"), zahl(e, "y2")); }
+    else if (tag === "polyline") {
+      var pt = e.getAttribute("points").trim().split(/[\s,]+/).map(Number);
+      for (var i = 0; i + 1 < pt.length; i += 2) { if (i === 0) p.moveTo(pt[i], pt[i + 1]); else p.lineTo(pt[i], pt[i + 1]); }
+    }
+    else if (tag === "path") p = new Path2D(e.getAttribute("d"));
+    else return;
+    var fill = e.getAttribute("fill"), stroke = e.getAttribute("stroke");
+    if (fill && fill !== "none") { ctx.fillStyle = fill === "currentColor" ? farbe : fill; ctx.fill(p); }
+    if (stroke !== "none") { ctx.strokeStyle = farbe; ctx.stroke(p); }
+  });
+  ctx.restore();
+}
+
+function uebungLesen(exId) {
+  var st = exState[exId];
+  function karte(card) {
+    var r = card.querySelector(".reason");
+    return {
+      text: card.querySelector(".card-text").textContent,
+      svg: card.querySelector(".card-icon svg"),
+      status: card.classList.contains("ok") ? "ok" : (card.classList.contains("bad") ? "bad" : ""),
+      grund: r && !r.hidden ? r.textContent : null
+    };
+  }
+  return {
+    titel: st.ex.titel,
+    art: st.ex.art,
+    zonen: Array.prototype.map.call(st.section.querySelectorAll(".zone"), function (z) {
+      return {
+        titel: z.querySelector(".zone-head > span:last-child").textContent,
+        svg: z.querySelector(".zone-head svg"),
+        karten: Array.prototype.map.call(z.querySelectorAll(".card"), karte)
+      };
+    }),
+    stapel: Array.prototype.map.call(st.pool.querySelectorAll(".card"), karte),
+    ergebnis: st.result.textContent,
+    hinweis: st.hinweis && !st.hinweis.hidden ? st.hinweis.textContent : null
+  };
+}
+
+// Karte messen (zeichnen = false) oder zeichnen; gibt die Höhe zurück
+function karteZeichnen(ctx, k, art, x, y, w, zeichnen) {
+  var mitte = art === "linie";
+  var platzRechts = mitte ? 0 : 26;
+  var textW = w - 2 * PAD - platzRechts;
+  ctx.font = schrift(400, 18);
+  var zeilen = umbrechen(ctx, k.text, textW);
+  var h = PAD + (mitte && k.svg ? 42 : 0) + zeilen.length * 23 + PAD;
+  var gruende = [];
+  if (k.grund) {
+    ctx.font = schrift(400, 15);
+    gruende = umbrechen(ctx, k.grund, textW);
+    h += 14 + gruende.length * 20;
+  }
+  h = Math.max(h, 50);
+  if (!zeichnen) return h;
+
+  var bg = "#FFFFFF", rand = F.line, rb = 2;
+  if (k.status === "ok") { bg = F.okBg; rand = F.green; rb = 3; }
+  if (k.status === "bad") { bg = F.badBg; rand = F.coral; rb = 3; }
+  box(ctx, x, y, w, h, 10, bg, rand, rb);
+
+  var ty = y + PAD;
+  if (mitte && k.svg) { symbolZeichnen(ctx, k.svg, x + w / 2 - 18, ty, 36, F.dark); ty += 42; }
+  ctx.fillStyle = F.text;
+  ctx.font = schrift(400, 18);
+  ctx.textAlign = mitte ? "center" : "left";
+  zeilen.forEach(function (z, i) { ctx.fillText(z, mitte ? x + w / 2 : x + PAD, ty + i * 23); });
+  ty += zeilen.length * 23;
+  ctx.textAlign = "left";
+  if (gruende.length) {
+    ctx.strokeStyle = F.line; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + PAD, ty + 7); ctx.lineTo(x + w - PAD - platzRechts, ty + 7); ctx.stroke();
+    ctx.font = schrift(400, 15);
+    ctx.fillStyle = F.text;
+    gruende.forEach(function (z, i) { ctx.fillText(z, x + PAD, ty + 14 + i * 20); });
+  }
+  if (k.status) {
+    var cx = x + w - 16, cy = y + 16;
+    ctx.beginPath(); ctx.arc(cx, cy, 11, 0, Math.PI * 2);
+    ctx.fillStyle = k.status === "ok" ? F.green : F.coral; ctx.fill();
+    ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 2.6; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath();
+    if (k.status === "ok") { ctx.moveTo(cx - 5, cy); ctx.lineTo(cx - 1.5, cy + 4); ctx.lineTo(cx + 5, cy - 4); }
+    else { ctx.moveTo(cx - 4, cy - 4); ctx.lineTo(cx + 4, cy + 4); ctx.moveTo(cx + 4, cy - 4); ctx.lineTo(cx - 4, cy + 4); }
+    ctx.stroke();
+  }
+  return h;
+}
+
+function uebungZeichnen(ctx, d, y, zeichnen) {
+  var x0 = RAND, innerW = BREITE - 2 * RAND, gap = 12;
+  ctx.textBaseline = "top";
+
+  ctx.font = schrift(700, 26);
+  if (zeichnen) { ctx.fillStyle = F.dark; ctx.fillText(d.titel, x0, y); }
+  y += 42;
+
+  if (d.art === "linie") {
+    if (zeichnen) {
+      ctx.font = schrift(700, 17);
+      ctx.fillStyle = F.dark;
+      ctx.fillText("spezialisiert", x0, y + 2);
+      var wR = ctx.measureText("vielseitig").width;
+      ctx.fillText("vielseitig", x0 + innerW - wR, y + 2);
+      var a = x0 + ctx.measureText("spezialisiert").width + 14, b = x0 + innerW - wR - 14, my = y + 12;
+      var g = ctx.createLinearGradient(a, 0, b, 0);
+      g.addColorStop(0, F.dark); g.addColorStop(1, F.accent);
+      ctx.fillStyle = g;
+      ctx.fillRect(a + 14, my - 3, b - a - 28, 6);
+      ctx.beginPath(); ctx.moveTo(a, my); ctx.lineTo(a + 16, my - 9); ctx.lineTo(a + 16, my + 9); ctx.closePath();
+      ctx.fillStyle = F.dark; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(b, my); ctx.lineTo(b - 16, my - 9); ctx.lineTo(b - 16, my + 9); ctx.closePath();
+      ctx.fillStyle = F.accent; ctx.fill();
+    }
+    y += 36;
+  }
+
+  // Zonen
+  var n = d.zonen.length, colW = (innerW - gap * (n - 1)) / n;
+  ctx.font = schrift(700, 18);
+  var koepfe = d.zonen.map(function (z) { return umbrechen(ctx, z.titel, colW - 20 - (z.svg ? 36 : 0)); });
+  var kopfH = Math.max(50, Math.max.apply(null, koepfe.map(function (l) { return 2 * PAD + l.length * 22; })));
+  var zonenH = kopfH + 80;
+  d.zonen.forEach(function (z) {
+    var h = kopfH + 10;
+    z.karten.forEach(function (k) { h += karteZeichnen(ctx, k, d.art, 0, 0, colW - 20, false) + 8; });
+    zonenH = Math.max(zonenH, h + 10);
+  });
+  if (zeichnen) {
+    d.zonen.forEach(function (z, i) {
+      var x = x0 + i * (colW + gap);
+      box(ctx, x, y, colW, zonenH, 10, "#FFFFFF", null);
+      ctx.save();
+      ctx.beginPath(); rundPfad(ctx, x, y, colW, zonenH, 10); ctx.clip();
+      ctx.fillStyle = F.dark; ctx.fillRect(x, y, colW, kopfH);
+      ctx.restore();
+      box(ctx, x, y, colW, zonenH, 10, null, F.dark, 2);
+      ctx.font = schrift(700, 18);
+      var lines = koepfe[i];
+      var maxL = Math.max.apply(null, lines.map(function (l) { return ctx.measureText(l).width; }));
+      var gruppe = maxL + (z.svg ? 36 : 0);
+      var gx = x + (colW - gruppe) / 2, gy = y + (kopfH - lines.length * 22) / 2;
+      if (z.svg) { symbolZeichnen(ctx, z.svg, gx, y + kopfH / 2 - 14, 28, "#FFFFFF"); gx += 36; }
+      ctx.fillStyle = "#FFFFFF";
+      ctx.textAlign = "center";
+      lines.forEach(function (l, j) { ctx.fillText(l, gx + maxL / 2, gy + j * 22 + 2); });
+      ctx.textAlign = "left";
+      var cy = y + kopfH + 10;
+      z.karten.forEach(function (k) { cy += karteZeichnen(ctx, k, d.art, x + 10, cy, colW - 20, true) + 8; });
+    });
+  }
+  y += zonenH + 18;
+
+  // Karten, die noch im Stapel liegen
+  if (d.stapel.length) {
+    ctx.font = schrift(700, 18);
+    if (zeichnen) { ctx.fillStyle = F.dark; ctx.fillText("Noch nicht zugeordnet:", x0, y); }
+    y += 30;
+    var m = d.art === "akku" ? 2 : 4, w = (innerW - gap * (m - 1)) / m;
+    for (var i = 0; i < d.stapel.length; i += m) {
+      var reihe = d.stapel.slice(i, i + m);
+      var rh = Math.max.apply(null, reihe.map(function (k) { return karteZeichnen(ctx, k, d.art, 0, 0, w, false); }));
+      if (zeichnen) reihe.forEach(function (k, j) { karteZeichnen(ctx, k, d.art, x0 + j * (w + gap), y, w, true); });
+      y += rh + 8;
+    }
+    y += 10;
+  }
+
+  // Ergebnis und Hinweis
+  ctx.font = schrift(700, 19);
+  var erg = umbrechen(ctx, d.ergebnis ? "Ergebnis: " + d.ergebnis : "Noch nicht geprüft.", innerW);
+  if (zeichnen) { ctx.fillStyle = F.text; erg.forEach(function (l, i) { ctx.fillText(l, x0, y + i * 25); }); }
+  y += erg.length * 25 + 8;
+  if (d.hinweis) {
+    ctx.font = schrift(600, 18);
+    var hz = umbrechen(ctx, d.hinweis, innerW - 30);
+    var hh = hz.length * 23 + 20;
+    if (zeichnen) {
+      ctx.fillStyle = F.bg2; ctx.fillRect(x0, y, innerW, hh);
+      ctx.fillStyle = F.accent; ctx.fillRect(x0, y, 6, hh);
+      ctx.fillStyle = F.text;
+      hz.forEach(function (l, i) { ctx.fillText(l, x0 + 20, y + 10 + i * 23); });
+    }
+    y += hh + 8;
+  }
+  return y + 12;
+}
+
+function heute() {
+  var d = new Date();
+  var p = function (n) { return (n < 10 ? "0" : "") + n; };
+  return { anzeige: p(d.getDate()) + "." + p(d.getMonth() + 1) + "." + d.getFullYear(),
+           datei: d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) };
+}
+
+function kopfZeichnen(ctx, name, zeichnen) {
+  ctx.textBaseline = "top";
+  if (zeichnen) {
+    ctx.fillStyle = F.dark; ctx.fillRect(0, 0, BREITE, 66);
+    ctx.fillStyle = "#FFFFFF"; ctx.font = schrift(700, 26);
+    ctx.fillText("Digitale Geräte im Alltag, Klasse " + KLASSE, RAND, 19);
+    ctx.fillStyle = F.text; ctx.font = schrift(400, 18);
+    ctx.fillText(name ? "Name: " + name : "Name:", RAND, 84);
+    var dt = "Datum: " + heute().anzeige;
+    ctx.fillText(dt, BREITE - RAND - ctx.measureText(dt).width, 84);
+  }
+  return 128;
+}
+
+function seiteRendern(exIds, name) {
+  function durchlauf(ctx, zeichnen) {
+    var y = kopfZeichnen(ctx, name, zeichnen);
+    exIds.forEach(function (id, i) {
+      if (i > 0) {
+        if (zeichnen) { ctx.fillStyle = F.line; ctx.fillRect(RAND, y, BREITE - 2 * RAND, 2); }
+        y += 24;
+      }
+      y = uebungZeichnen(ctx, uebungLesen(id), y, zeichnen);
+    });
+    return y + 16;
+  }
+  var c = document.createElement("canvas");
+  var hoehe = durchlauf(c.getContext("2d"), false);
+  var s = Math.min(2, Math.sqrt(12e6 / (BREITE * hoehe)));
+  c.width = Math.round(BREITE * s);
+  c.height = Math.round(hoehe * s);
+  var ctx = c.getContext("2d");
+  ctx.scale(s, s);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, BREITE, hoehe);
+  durchlauf(ctx, true);
+  return c;
+}
+
+function bytesAus(s) {
+  var b = new Uint8Array(s.length);
+  for (var i = 0; i < s.length; i++) b[i] = s.charCodeAt(i) & 255;
+  return b;
+}
+
+// Einfaches PDF: pro Canvas eine A4-Seite mit dem Bild als JPEG
+function pdfErstellen(canvases) {
+  var teile = [], laenge = 0, offsets = [];
+  function add(x) { var b = typeof x === "string" ? bytesAus(x) : x; teile.push(b); laenge += b.length; }
+  var anzahl = 2 + canvases.length * 3;
+  add("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+  offsets[1] = laenge;
+  add("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+  var kids = canvases.map(function (c, i) { return (3 + i * 3) + " 0 R"; }).join(" ");
+  offsets[2] = laenge;
+  add("2 0 obj\n<< /Type /Pages /Kids [" + kids + "] /Count " + canvases.length + " >>\nendobj\n");
+  var PW = 595.28, PH = 841.89, M = 28;
+  canvases.forEach(function (c, i) {
+    var nSeite = 3 + i * 3, nInhalt = nSeite + 1, nBild = nSeite + 2;
+    var jpeg = bytesAus(atob(c.toDataURL("image/jpeg", 0.92).split(",")[1]));
+    var s = Math.min((PW - 2 * M) / c.width, (PH - 2 * M) / c.height);
+    var w = c.width * s, h = c.height * s, x = (PW - w) / 2, y = PH - M - h;
+    offsets[nSeite] = laenge;
+    add(nSeite + " 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + PW + " " + PH + "] /Resources << /XObject << /Im0 " + nBild + " 0 R >> >> /Contents " + nInhalt + " 0 R >>\nendobj\n");
+    var inhalt = "q " + w.toFixed(2) + " 0 0 " + h.toFixed(2) + " " + x.toFixed(2) + " " + y.toFixed(2) + " cm /Im0 Do Q";
+    offsets[nInhalt] = laenge;
+    add(nInhalt + " 0 obj\n<< /Length " + inhalt.length + " >>\nstream\n" + inhalt + "\nendstream\nendobj\n");
+    offsets[nBild] = laenge;
+    add(nBild + " 0 obj\n<< /Type /XObject /Subtype /Image /Width " + c.width + " /Height " + c.height + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + jpeg.length + " >>\nstream\n");
+    add(jpeg);
+    add("\nendstream\nendobj\n");
+  });
+  var xref = laenge;
+  var x = "xref\n0 " + (anzahl + 1) + "\n0000000000 65535 f \n";
+  for (var n = 1; n <= anzahl; n++) x += ("0000000000" + offsets[n]).slice(-10) + " 00000 n \n";
+  add(x + "trailer\n<< /Size " + (anzahl + 1) + " /Root 1 0 R >>\nstartxref\n" + xref + "\n%%EOF\n");
+  return new Blob(teile, { type: "application/pdf" });
+}
+
+function dateiname(name, teil, endung) {
+  var ersatz = { "Ä": "Ae", "Ö": "Oe", "Ü": "Ue", "ä": "ae", "ö": "oe", "ü": "ue" };
+  var sauber = function (s) {
+    s = s.trim().replace(/[ÄÖÜäöü]/g, function (c) { return ersatz[c]; });
+    if (s.normalize) s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return s.replace(/\s+/g, "_").replace(/[^A-Za-z0-9_-]/g, "");
+  };
+  return [KLASSE, sauber(name), sauber(teil), heute().datei].filter(Boolean).join("_") + "." + endung;
+}
+
+/* Fenster «Herunterladen» */
+var dl = { exId: null, url: null, datei: null, blob: null, ausloeser: null };
+
+function $(id) { return document.getElementById(id); }
+
+function dlZuruecksetzen() {
+  $("dl-ready").hidden = true;
+  $("dl-fehler").textContent = "";
+  if (dl.url) URL.revokeObjectURL(dl.url);
+  dl.url = null; dl.blob = null; dl.datei = null;
+}
+
+function dlOeffnen(exId, knopf) {
+  abwaehlen();
+  dl.exId = exId;
+  dl.ausloeser = knopf;
+  dlZuruecksetzen();
+  $("dl-hier").textContent = "Nur diese Übung: " + exState[exId].ex.titel;
+  $("dl").hidden = false;
+  document.body.classList.add("modal-offen");
+  $("dl-title").focus();
+}
+
+function dlSchliessen() {
+  $("dl").hidden = true;
+  document.body.classList.remove("modal-offen");
+  dlZuruecksetzen();
+  if (dl.ausloeser) dl.ausloeser.focus();
+}
+
+function dlFertig(blob, datei, vorschau, text) {
+  if (!blob) { $("dl-fehler").textContent = "Das hat nicht geklappt. Versuche es nochmals."; return; }
+  dlZuruecksetzen();
+  dl.blob = blob; dl.datei = datei; dl.url = URL.createObjectURL(blob);
+  $("dl-preview").src = vorschau;
+  var save = $("dl-save");
+  save.href = dl.url;
+  save.setAttribute("download", datei);
+  var teilen = false;
+  try {
+    teilen = !!(navigator.canShare && navigator.canShare({ files: [new File([blob], datei, { type: blob.type })] }));
+  } catch (err) { teilen = false; }
+  $("dl-share").hidden = !teilen;
+  $("dl-info").textContent = text + " Dateiname: " + datei;
+  $("dl-ready").hidden = false;
+  $("dl-ready").scrollIntoView({ block: "nearest" });
+}
+
+function dlErstellen(format) {
+  var name = $("dl-name").value.trim().slice(0, 40);
+  var alle = $("dl-alle").checked;
+  var ids = alle ? UEBUNGEN.map(function (ex) { return ex.id; }) : [dl.exId];
+  var teil = alle ? "Alle Übungen" : exState[dl.exId].ex.titel;
+  try {
+    if (format === "png") {
+      var c = seiteRendern(ids, name);
+      var vorschau = c.toDataURL("image/jpeg", 0.6);
+      var png = new Blob([bytesAus(atob(c.toDataURL("image/png").split(",")[1]))], { type: "image/png" });
+      dlFertig(png, dateiname(name, teil, "png"), vorschau, "Das Bild ist bereit.");
+    } else {
+      var seiten = ids.map(function (id) { return seiteRendern([id], name); });
+      var pdf = pdfErstellen(seiten);
+      dlFertig(pdf, dateiname(name, teil, "pdf"), seiten[0].toDataURL("image/jpeg", 0.6),
+        "Das PDF ist bereit (" + seiten.length + (seiten.length === 1 ? " Seite)." : " Seiten)."));
+    }
+  } catch (err) {
+    $("dl-fehler").textContent = "Das hat nicht geklappt. Versuche es nochmals.";
+  }
+}
+
+(function dlVerdrahten() {
+  $("dl-png").addEventListener("click", function () { dlErstellen("png"); });
+  $("dl-pdf").addEventListener("click", function () { dlErstellen("pdf"); });
+  $("dl-close").addEventListener("click", dlSchliessen);
+  $("dl-name").addEventListener("input", dlZuruecksetzen);
+  $("dl-eine").addEventListener("change", dlZuruecksetzen);
+  $("dl-alle").addEventListener("change", dlZuruecksetzen);
+  $("dl-share").addEventListener("click", function () {
+    if (!dl.blob) return;
+    var file = new File([dl.blob], dl.datei, { type: dl.blob.type });
+    navigator.share({ files: [file] }).catch(function () { /* abgebrochen */ });
+  });
+  $("dl").addEventListener("click", function (e) { if (e.target === $("dl")) dlSchliessen(); });
+  $("dl").addEventListener("keydown", function (e) { if (e.key === "Escape") dlSchliessen(); });
+})();
 
 /* Tabs */
 function tabWechseln(id) {
