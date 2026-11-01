@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
+<title>Digitale Geräte im Alltag, Klasse B1e</title>
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --text: #17202A;
+  --bg: #FFFFFF;
+  --bg2: #E8F1F2;
+  --accent: #0B7F8C;
+  --coral: #D94A2E;
+  --green: #237A55;
+  --dark: #0F4C5C;
+  --ok-bg: #E4F2EB;
+  --bad-bg: #FBE9E5;
+  --line: #8FB3B9;
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg2);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Calibri, Carlito, Arial, sans-serif;
+  font-size: 18px;
+  line-height: 1.4;
+  -webkit-tap-highlight-color: transparent;
+}
+body.is-dragging { -webkit-user-select: none; user-select: none; }
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+header.top {
+  background: var(--dark);
+  color: #FFFFFF;
+  padding: 14px 20px;
+  padding-top: max(14px, env(safe-area-inset-top));
+}
+header.top h1 { margin: 0 auto; max-width: 1100px; font-size: 24px; line-height: 1.25; font-weight: 700; }
+main { max-width: 1100px; margin: 0 auto; padding: 16px 16px 40px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.tab {
+  flex: 1 1 0;
+  min-height: 52px;
+  padding: 8px 12px;
+  border: 2px solid var(--dark);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--dark);
+  font: inherit;
+  font-weight: 700;
+  font-size: 17px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.tab[aria-selected="true"] { background: var(--dark); color: #FFFFFF; }
+.tab:focus-visible, .btn:focus-visible, .card:focus-visible, .zone-head:focus-visible {
+  outline: 3px solid var(--accent); outline-offset: 3px;
+}
+
+/* Panel */
+.panel { background: var(--bg); border-radius: var(--radius); padding: 16px 18px 20px; }
+.panel h2 { margin: 0 0 6px; font-size: 22px; color: var(--dark); }
+.auftrag { margin: 0 0 4px; }
+.bedienung { margin: 0 0 12px; font-size: 16px; color: var(--text); }
+
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 14px 0 6px; }
+.btn {
+  min-height: 48px;
+  min-width: 120px;
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.btn-check { background: var(--accent); color: #FFFFFF; border: 2px solid var(--accent); }
+.btn-shuffle { background: var(--bg); color: var(--dark); border: 2px solid var(--dark); }
+.btn:active { transform: translateY(1px); }
+.result { font-weight: 700; margin: 0; flex: 1 1 260px; }
+.status { min-height: 1.4em; margin: 4px 0 0; font-size: 16px; color: var(--dark); }
+.hinweis {
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border-left: 6px solid var(--accent);
+  background: var(--bg2);
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* Kartenstapel */
+.pool {
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--bg2);
+  padding: 10px;
+  margin-bottom: 14px;
+}
+.pool-head {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin: 0 0 6px;
+  padding: 4px 2px;
+  border: 0;
+  background: none;
+  color: var(--dark);
+  font: inherit;
+  font-weight: 700;
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.pool .cards { display: flex; flex-wrap: wrap; gap: 10px; min-height: 56px; }
+.pool .cards:empty::before { content: "Alle Karten sind verteilt."; color: var(--dark); align-self: center; padding: 0 4px; }
+
+/* Zonen */
+.zones { display: grid; gap: 10px; }
+.zones-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.zones-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.zones-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.zone {
+  display: flex;
+  flex-direction: column;
+  border: 2px dashed var(--dark);
+  border-radius: var(--radius);
+  background: var(--bg);
+  min-height: 200px;
+  overflow: hidden;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+.zone-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  width: 100%;
+  padding: 8px 8px;
+  border: 0;
+  background: var(--dark);
+  color: #FFFFFF;
+  font: inherit;
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.zone-head svg { width: 30px; height: 30px; flex: none; }
+.zone .cards { display: flex; flex-direction: column; gap: 8px; padding: 10px; flex: 1 1 auto; }
+.zone.over, .pool.over { background: #D2EBEE; border-style: solid; border-color: var(--accent); }
+.awaiting .zone, .awaiting .pool { border-color: var(--accent); border-style: solid; }
+.awaiting .zone .cards { background: rgba(11, 127, 140, 0.06); }
+
+/* Linie */
+.skala { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; font-weight: 700; color: var(--dark); font-size: 16px; }
+.skala svg { flex: 1 1 auto; height: 22px; min-width: 60px; }
+.ex-linie .zone:nth-child(1) .zone-head { background: #0F4C5C; }
+.ex-linie .zone:nth-child(2) .zone-head { background: #0D5C69; }
+.ex-linie .zone:nth-child(3) .zone-head { background: #0C6B77; }
+.ex-linie .zone:nth-child(4) .zone-head { background: #0B7480; }
+
+/* Karten */
+.card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  min-width: 44px;
+  padding: 10px 14px;
+  margin: 0;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+  line-height: 1.25;
+  text-align: left;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  box-shadow: 0 2px 4px rgba(15, 76, 92, 0.15);
+}
+.zone .card { width: 100%; }
+.card-text { display: block; }
+.card-icon { width: 40px; height: 40px; flex: none; color: var(--dark); }
+.card--linie { flex-direction: column; justify-content: center; text-align: center; gap: 4px; padding: 8px 6px; width: 150px; min-height: 92px; }
+.zone .card--linie { width: 100%; }
+.card--akku { display: block; width: calc(50% - 5px); padding-right: 40px; }
+.zone .card--akku { width: 100%; }
+.card.selected { border-color: var(--accent); background: #D2EBEE; box-shadow: 0 0 0 3px var(--accent); }
+.card.dragging { opacity: 0.35; }
+.card.ok { border: 3px solid var(--green); background: var(--ok-bg); cursor: default; }
+.card.bad { border: 3px solid var(--coral); background: var(--bad-bg); }
+.mark {
+  display: none;
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #FFFFFF;
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 700;
+  text-align: center;
+}
+.card.ok .mark { display: block; background: var(--green); }
+.card.ok .mark::before { content: "\2713"; }
+.card.bad .mark { display: block; background: var(--coral); }
+.card.bad .mark::before { content: "\2717"; }
+.reason {
+  display: block;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+  color: var(--text);
+}
+.reason[hidden] { display: none; }
+.ghost {
+  position: fixed !important;
+  z-index: 1000;
+  margin: 0 !important;
+  pointer-events: none;
+  opacity: 0.95;
+  transform: rotate(2deg) scale(1.04);
+  box-shadow: 0 10px 24px rgba(15, 76, 92, 0.35);
+}
+
+@media (max-width: 860px) {
+  .card--akku { width: 100%; }
+  .zone-head { font-size: 16px; }
+}
+@media (max-width: 760px) {
+  .tab { font-size: 15px; }
+}
+@media (max-width: 600px) {
+  .zones-3, .zones-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .zones-2 { grid-template-columns: 1fr; }
+}
+@media (orientation: landscape) and (min-width: 900px) {
+  .ex-akku .zone, .ex-begriffe .zone { min-height: 180px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zone { transition: none; }
+  .ghost { transform: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Digitale Geräte im Alltag, Klasse B1e</h1>
+</header>
+<main>
+  <div class="tabs" role="tablist" aria-label="Übungen" id="tabs"></div>
+  <div id="panels"></div>
+</main>
+<noscript><p style="padding:16px">Bitte schalte JavaScript ein. Sonst funktionieren die Übungen nicht.</p></noscript>
+<script>
+"use strict";
+
+/* Inhalte dieser Seite */
+var UEBUNGEN = [
+  {
+    "id": "linie",
+    "art": "linie",
+    "tab": "1. Vielseitigkeit",
+    "titel": "Vielseitigkeitslinie",
+    "auftrag": [
+      "Manche Geräte können nur eine Sache. Andere können sehr viel.",
+      "Ordne jedes Gerät auf der Linie ein."
+    ],
+    "hinweis": "Der Übergang ist fliessend. Wichtig ist deine Begründung.",
+    "zonen": [
+      {
+        "id": "sehr-spezialisiert",
+        "titel": "sehr spezialisiert"
+      },
+      {
+        "id": "eher-spezialisiert",
+        "titel": "eher spezialisiert"
+      },
+      {
+        "id": "eher-vielseitig",
+        "titel": "eher vielseitig"
+      },
+      {
+        "id": "sehr-vielseitig",
+        "titel": "sehr vielseitig"
+      }
+    ],
+    "karten": [
+      {
+        "id": "g1",
+        "text": "Waschmaschine",
+        "loesung": "sehr-spezialisiert",
+        "icon": "waschmaschine"
+      },
+      {
+        "id": "g2",
+        "text": "Billettautomat",
+        "loesung": "eher-spezialisiert",
+        "icon": "billettautomat"
+      },
+      {
+        "id": "g3",
+        "text": "Activity Tracker",
+        "loesung": "eher-spezialisiert",
+        "icon": "activity-tracker"
+      },
+      {
+        "id": "g4",
+        "text": "Spielkonsole",
+        "loesung": "eher-vielseitig",
+        "icon": "spielkonsole"
+      },
+      {
+        "id": "g5",
+        "text": "Smartphone",
+        "loesung": "sehr-vielseitig",
+        "icon": "smartphone"
+      }
+    ]
+  },
+  {
+    "id": "begriffe",
+    "art": "begriffe",
+    "tab": "2. Begriffe",
+    "titel": "Begriffe sortieren",
+    "auftrag": [
+      "Ist der Begriff Hardware, ein Betriebssystem oder Anwendungssoftware?",
+      "Lege jede Karte in das passende Feld."
+    ],
+    "zonen": [
+      {
+        "id": "hardware",
+        "titel": "Hardware"
+      },
+      {
+        "id": "betriebssystem",
+        "titel": "Betriebssystem"
+      },
+      {
+        "id": "anwendungssoftware",
+        "titel": "Anwendungssoftware"
+      }
+    ],
+    "karten": [
+      {
+        "id": "b1",
+        "text": "Prozessor",
+        "loesung": "hardware"
+      },
+      {
+        "id": "b2",
+        "text": "Bildschirm",
+        "loesung": "hardware"
+      },
+      {
+        "id": "b3",
+        "text": "Akku",
+        "loesung": "hardware"
+      },
+      {
+        "id": "b4",
+        "text": "iPadOS",
+        "loesung": "betriebssystem"
+      },
+      {
+        "id": "b5",
+        "text": "Android",
+        "loesung": "betriebssystem"
+      },
+      {
+        "id": "b6",
+        "text": "Windows",
+        "loesung": "betriebssystem"
+      },
+      {
+        "id": "b7",
+        "text": "Safari",
+        "loesung": "anwendungssoftware"
+      },
+      {
+        "id": "b8",
+        "text": "WhatsApp",
+        "loesung": "anwendungssoftware"
+      },
+      {
+        "id": "b9",
+        "text": "Word",
+        "loesung": "anwendungssoftware"
+      }
+    ]
+  },
+  {
+    "id": "akku",
+    "art": "akku",
+    "tab": "3. Akku",
+    "titel": "Situationskarten Akku",
+    "auftrag": [
+      "Lies jede Situation. Hält der Akku dann länger oder kürzer?",
+      "Nach dem Prüfen siehst du unter jeder Karte den Grund."
+    ],
+    "zonen": [
+      {
+        "id": "laenger",
+        "titel": "Akku hält länger",
+        "icon": "akku-voll"
+      },
+      {
+        "id": "kuerzer",
+        "titel": "Akku hält kürzer",
+        "icon": "akku-leer"
+      }
+    ],
+    "karten": [
+      {
+        "id": "s1",
+        "text": "Bildschirmhelligkeit auf Maximum",
+        "loesung": "kuerzer",
+        "grund": "Das Display braucht viel Energie."
+      },
+      {
+        "id": "s2",
+        "text": "Flugmodus eingeschaltet",
+        "loesung": "laenger",
+        "grund": "Das Funkmodul ist ausgeschaltet."
+      },
+      {
+        "id": "s3",
+        "text": "Navigation mit GPS läuft die ganze Zeit",
+        "loesung": "kuerzer",
+        "grund": "GPS-Nutzung verbraucht viel Energie."
+      },
+      {
+        "id": "s4",
+        "text": "Draussen bei Kälte im Skilager",
+        "loesung": "kuerzer",
+        "grund": "Kälte verkürzt die Akkulaufzeit."
+      },
+      {
+        "id": "s5",
+        "text": "Bluetooth aus, wenn kein Gerät verbunden ist",
+        "loesung": "laenger",
+        "grund": "Ein ausgeschaltetes Modul spart Energie."
+      },
+      {
+        "id": "s6",
+        "text": "Display schaltet nach 30 Sekunden von selbst aus",
+        "loesung": "laenger",
+        "grund": "Das Display leuchtet weniger lang."
+      }
+    ]
+  }
+];
+
+/* Symbole (einfache SVG-Zeichnungen) */
+var ICONS = {
+  "waschmaschine": "<rect x=\"8\" y=\"5\" width=\"32\" height=\"38\" rx=\"4\"/><line x1=\"8\" y1=\"13\" x2=\"40\" y2=\"13\"/><circle cx=\"13.5\" cy=\"9\" r=\"1.2\" fill=\"currentColor\"/><line x1=\"20\" y1=\"9\" x2=\"34\" y2=\"9\"/><circle cx=\"24\" cy=\"28\" r=\"9.5\"/><path d=\"M17.5 29.5c2.2-2 4.3-2 6.5 0s4.3 2 6.5 0\"/>",
+  "billettautomat": "<rect x=\"11\" y=\"3\" width=\"26\" height=\"42\" rx=\"3\"/><rect x=\"15\" y=\"8\" width=\"18\" height=\"11\" rx=\"1.5\"/><circle cx=\"18\" cy=\"25\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"24\" cy=\"25\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"30\" cy=\"25\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"18\" cy=\"30\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"24\" cy=\"30\" r=\"1.4\" fill=\"currentColor\"/><circle cx=\"30\" cy=\"30\" r=\"1.4\" fill=\"currentColor\"/><line x1=\"17\" y1=\"38\" x2=\"31\" y2=\"38\"/>",
+  "activity-tracker": "<path d=\"M18 14V4h12v10\"/><path d=\"M18 34v10h12V34\"/><rect x=\"13\" y=\"14\" width=\"22\" height=\"20\" rx=\"6\"/><polyline points=\"17 24 21 24 23 20 26 28 28 24 31 24\"/>",
+  "spielkonsole": "<path d=\"M15 15h18a9 9 0 0 1 8.8 7.2l2 10a5 5 0 0 1-8.7 4.2L30.5 32h-13l-4.6 4.4a5 5 0 0 1-8.7-4.2l2-10A9 9 0 0 1 15 15z\"/><line x1=\"15\" y1=\"20.5\" x2=\"15\" y2=\"27.5\"/><line x1=\"11.5\" y1=\"24\" x2=\"18.5\" y2=\"24\"/><circle cx=\"31\" cy=\"21.5\" r=\"1.6\" fill=\"currentColor\"/><circle cx=\"35\" cy=\"25.5\" r=\"1.6\" fill=\"currentColor\"/>",
+  "smartphone": "<rect x=\"13\" y=\"3\" width=\"22\" height=\"42\" rx=\"4\"/><line x1=\"21\" y1=\"8\" x2=\"27\" y2=\"8\"/><line x1=\"20\" y1=\"40\" x2=\"28\" y2=\"40\"/>",
+  "akku-voll": "<rect x=\"4\" y=\"13\" width=\"35\" height=\"22\" rx=\"3\"/><rect x=\"39\" y=\"19\" width=\"4\" height=\"10\" rx=\"1\" fill=\"currentColor\"/><rect x=\"8\" y=\"17\" width=\"27\" height=\"14\" rx=\"1\" fill=\"currentColor\" stroke=\"none\"/>",
+  "akku-leer": "<rect x=\"4\" y=\"13\" width=\"35\" height=\"22\" rx=\"3\"/><rect x=\"39\" y=\"19\" width=\"4\" height=\"10\" rx=\"1\" fill=\"currentColor\"/><rect x=\"8\" y=\"17\" width=\"5\" height=\"14\" rx=\"1\" fill=\"currentColor\" stroke=\"none\"/>"
+};
+
+var BEDIENUNG = "Ziehe eine Karte mit dem Finger in ein Feld. Oder tippe zuerst auf eine Karte und dann auf ein Feld.";
+var DRAG_SCHWELLE = 8;
+var RAND_SCROLL = 80;
+
+function svgIcon(name, cls) {
+  var span = document.createElement("span");
+  span.className = cls;
+  span.setAttribute("aria-hidden", "true");
+  span.innerHTML = '<svg viewBox="0 0 48 48" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' + ICONS[name] + "</svg>";
+  return span;
+}
+
+function el(tag, cls, text) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+/* Aufbau */
+var exState = {};
+
+function buildExercise(ex, index) {
+  var section = el("section", "panel ex-" + ex.art);
+  section.id = "panel-" + ex.id;
+  section.setAttribute("role", "tabpanel");
+  section.setAttribute("aria-labelledby", "tab-" + ex.id);
+  section.dataset.ex = ex.id;
+  if (index > 0) section.hidden = true;
+
+  section.appendChild(el("h2", null, ex.titel));
+  ex.auftrag.forEach(function (satz) { section.appendChild(el("p", "auftrag", satz)); });
+  section.appendChild(el("p", "bedienung", BEDIENUNG));
+
+  // Stapel
+  var pool = el("div", "pool");
+  pool.dataset.zone = "stapel";
+  var poolHead = el("button", "pool-head", "Kartenstapel");
+  poolHead.type = "button";
+  poolHead.setAttribute("aria-label", "Kartenstapel: gewählte Karte zurücklegen");
+  pool.appendChild(poolHead);
+  var poolCards = el("div", "cards");
+  pool.appendChild(poolCards);
+  section.appendChild(pool);
+
+  // Skala für die Linie
+  if (ex.art === "linie") {
+    var skala = el("div", "skala");
+    skala.setAttribute("aria-hidden", "true");
+    skala.appendChild(el("span", null, "spezialisiert"));
+    var s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    s.setAttribute("viewBox", "0 0 400 22");
+    s.setAttribute("preserveAspectRatio", "none");
+    s.innerHTML = '<defs><linearGradient id="g-' + ex.id + '" x1="0" x2="1"><stop offset="0" stop-color="#0F4C5C"/><stop offset="1" stop-color="#0B7F8C"/></linearGradient></defs>' +
+      '<rect x="14" y="8" width="372" height="6" fill="url(#g-' + ex.id + ')"/>' +
+      '<path d="M0 11 L16 1 L16 21 Z" fill="#0F4C5C"/><path d="M400 11 L384 1 L384 21 Z" fill="#0B7F8C"/>';
+    skala.appendChild(s);
+    skala.appendChild(el("span", null, "vielseitig"));
+    section.appendChild(skala);
+  }
+
+  // Zonen
+  var zones = el("div", "zones zones-" + ex.zonen.length);
+  ex.zonen.forEach(function (z) {
+    var zone = el("div", "zone");
+    zone.dataset.zone = z.id;
+    var head = el("button", "zone-head");
+    head.type = "button";
+    if (z.icon) head.appendChild(svgIcon(z.icon, "zone-icon"));
+    head.appendChild(el("span", null, z.titel));
+    zone.appendChild(head);
+    var c = el("div", "cards");
+    zone.appendChild(c);
+    zones.appendChild(zone);
+  });
+  section.appendChild(zones);
+
+  // Werkzeugleiste
+  var toolbar = el("div", "toolbar");
+  var btnCheck = el("button", "btn btn-check", "Prüfen");
+  btnCheck.type = "button";
+  var btnShuffle = el("button", "btn btn-shuffle", "Neu mischen");
+  btnShuffle.type = "button";
+  var result = el("p", "result");
+  result.setAttribute("aria-live", "polite");
+  toolbar.appendChild(btnCheck);
+  toolbar.appendChild(btnShuffle);
+  toolbar.appendChild(result);
+  section.appendChild(toolbar);
+
+  var status = el("p", "status");
+  status.setAttribute("aria-live", "polite");
+  section.appendChild(status);
+
+  var hinweis = null;
+  if (ex.hinweis) {
+    hinweis = el("p", "hinweis", ex.hinweis);
+    hinweis.hidden = true;
+    section.appendChild(hinweis);
+  }
+
+  // Karten
+  var cards = ex.karten.map(function (k) {
+    var card = el("button", "card card--" + ex.art);
+    card.type = "button";
+    card.dataset.id = k.id;
+    card.dataset.loesung = k.loesung;
+    card.setAttribute("aria-pressed", "false");
+    if (k.icon) card.appendChild(svgIcon(k.icon, "card-icon"));
+    card.appendChild(el("span", "card-text", k.text));
+    var sr = el("span", "visually-hidden sr-state");
+    card.appendChild(sr);
+    var mark = el("span", "mark");
+    mark.setAttribute("aria-hidden", "true");
+    card.appendChild(mark);
+    if (k.grund) {
+      var r = el("span", "reason", "Grund: " + k.grund);
+      r.hidden = true;
+      card.appendChild(r);
+    }
+    poolCards.appendChild(card);
+    return card;
+  });
+
+  exState[ex.id] = {
+    ex: ex, section: section, pool: pool, cards: cards,
+    result: result, status: status, hinweis: hinweis
+  };
+
+  btnCheck.addEventListener("click", function () { pruefen(ex.id); });
+  btnShuffle.addEventListener("click", function () { mischen(ex.id); });
+
+  [pool].concat(Array.prototype.slice.call(zones.children)).forEach(function (zone) {
+    zone.addEventListener("click", function (e) {
+      if (e.target.closest(".card")) return;
+      zoneAntippen(ex.id, zone);
+    });
+  });
+
+  cards.forEach(function (card) { karteVerdrahten(card, ex.id); });
+  return section;
+}
+
+/* Auswahl per Antippen */
+var auswahl = null; // { card, exId }
+
+function abwaehlen() {
+  if (!auswahl) return;
+  auswahl.card.classList.remove("selected");
+  auswahl.card.setAttribute("aria-pressed", "false");
+  var st = exState[auswahl.exId];
+  st.section.classList.remove("awaiting");
+  st.status.textContent = "";
+  auswahl = null;
+}
+
+function waehlen(card, exId) {
+  if (card.classList.contains("ok")) return;
+  if (auswahl && auswahl.card === card) { abwaehlen(); return; }
+  abwaehlen();
+  auswahl = { card: card, exId: exId };
+  card.classList.add("selected");
+  card.setAttribute("aria-pressed", "true");
+  var st = exState[exId];
+  st.section.classList.add("awaiting");
+  st.status.textContent = "Gewählt: " + card.querySelector(".card-text").textContent + ". Tippe jetzt auf ein Feld.";
+}
+
+function zoneAntippen(exId, zone) {
+  if (!auswahl || auswahl.exId !== exId) {
+    if (zone.dataset.zone !== "stapel") exState[exId].status.textContent = "Tippe zuerst auf eine Karte.";
+    return;
+  }
+  var card = auswahl.card;
+  abwaehlen();
+  verschieben(card, zone);
+  card.focus({ preventScroll: true });
+}
+
+function verschieben(card, zone) {
+  var ziel = zone.querySelector(".cards");
+  if (card.parentNode !== ziel) ziel.appendChild(card);
+  if (card.classList.contains("bad")) {
+    card.classList.remove("bad");
+    card.querySelector(".sr-state").textContent = "";
+  }
+}
+
+/* Ziehen mit Pointer Events */
+var drag = null;
+var gezogen = { card: null, zeit: 0 };
+
+function zoneUnter(x, y, section) {
+  var t = document.elementFromPoint(x, y);
+  if (!t) return null;
+  var z = t.closest("[data-zone]");
+  if (z && section.contains(z)) return z;
+  return null;
+}
+
+function markiereZiel(zone) {
+  if (drag.over === zone) return;
+  if (drag.over) drag.over.classList.remove("over");
+  drag.over = zone;
+  if (zone) zone.classList.add("over");
+}
+
+function ghostSetzen() {
+  drag.ghost.style.left = (drag.x - drag.offX) + "px";
+  drag.ghost.style.top = (drag.y - drag.offY) + "px";
+}
+
+function ziehenStarten() {
+  abwaehlen();
+  var card = drag.card;
+  var r = card.getBoundingClientRect();
+  var breite = Math.min(r.width, 320);
+  drag.offX = Math.min(drag.startX - r.left, breite - 24);
+  drag.offY = drag.startY - r.top;
+  var g = card.cloneNode(true);
+  g.classList.add("ghost");
+  g.classList.remove("selected");
+  g.setAttribute("aria-hidden", "true");
+  g.removeAttribute("data-id");
+  g.style.width = breite + "px";
+  if (breite === r.width) g.style.height = r.height + "px";
+  document.body.appendChild(g);
+  drag.ghost = g;
+  drag.active = true;
+  card.classList.add("dragging");
+  document.body.classList.add("is-dragging");
+  ghostSetzen();
+  requestAnimationFrame(autoScroll);
+}
+
+function autoScroll() {
+  if (!drag || !drag.active) return;
+  var v = 0, h = window.innerHeight;
+  if (drag.y < RAND_SCROLL) v = -Math.ceil((RAND_SCROLL - drag.y) / 5);
+  else if (drag.y > h - RAND_SCROLL) v = Math.ceil((drag.y - (h - RAND_SCROLL)) / 5);
+  if (v !== 0) {
+    window.scrollBy(0, v);
+    markiereZiel(zoneUnter(drag.x, drag.y, drag.section));
+  }
+  requestAnimationFrame(autoScroll);
+}
+
+function ziehenBeenden(ablegen) {
+  if (!drag) return;
+  var d = drag;
+  drag = null;
+  if (d.active) {
+    var zone = ablegen ? zoneUnter(d.x, d.y, d.section) : null;
+    if (d.over) d.over.classList.remove("over");
+    if (d.ghost && d.ghost.parentNode) d.ghost.parentNode.removeChild(d.ghost);
+    d.card.classList.remove("dragging");
+    document.body.classList.remove("is-dragging");
+    if (zone) verschieben(d.card, zone);
+    gezogen = { card: d.card, zeit: Date.now() };
+  }
+  try { d.card.releasePointerCapture(d.pointerId); } catch (err) { /* schon frei */ }
+}
+
+function karteVerdrahten(card, exId) {
+  card.addEventListener("pointerdown", function (e) {
+    if (drag || card.classList.contains("ok")) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    drag = {
+      card: card, exId: exId, section: exState[exId].section,
+      pointerId: e.pointerId, startX: e.clientX, startY: e.clientY,
+      x: e.clientX, y: e.clientY, active: false, ghost: null, over: null
+    };
+    try { card.setPointerCapture(e.pointerId); } catch (err) { /* ignorieren */ }
+  });
+  card.addEventListener("pointermove", function (e) {
+    if (!drag || drag.card !== card || e.pointerId !== drag.pointerId) return;
+    drag.x = e.clientX;
+    drag.y = e.clientY;
+    if (!drag.active) {
+      var dx = drag.x - drag.startX, dy = drag.y - drag.startY;
+      if (dx * dx + dy * dy < DRAG_SCHWELLE * DRAG_SCHWELLE) return;
+      ziehenStarten();
+    }
+    e.preventDefault();
+    ghostSetzen();
+    markiereZiel(zoneUnter(drag.x, drag.y, drag.section));
+  });
+  card.addEventListener("pointerup", function (e) {
+    if (!drag || drag.card !== card || e.pointerId !== drag.pointerId) return;
+    drag.x = e.clientX;
+    drag.y = e.clientY;
+    ziehenBeenden(true);
+  });
+  card.addEventListener("pointercancel", function (e) {
+    if (!drag || drag.card !== card || e.pointerId !== drag.pointerId) return;
+    ziehenBeenden(false);
+  });
+  card.addEventListener("lostpointercapture", function (e) {
+    if (drag && drag.card === card && e.pointerId === drag.pointerId && drag.active) ziehenBeenden(true);
+  });
+  card.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (gezogen.card === card && Date.now() - gezogen.zeit < 400) return;
+    waehlen(card, exId);
+  });
+  card.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+}
+
+// Safari: Seite darf beim Ziehen nicht scrollen
+document.addEventListener("touchmove", function (e) {
+  if (drag && drag.active) e.preventDefault();
+}, { passive: false });
+
+/* Prüfen und Mischen */
+function pruefen(exId) {
+  abwaehlen();
+  var st = exState[exId];
+  var richtig = 0, imStapel = 0, falsch = 0;
+  st.cards.forEach(function (card) {
+    var zone = card.closest("[data-zone]").dataset.zone;
+    var sr = card.querySelector(".sr-state");
+    card.classList.remove("ok", "bad");
+    if (zone === "stapel") {
+      imStapel++;
+      sr.textContent = "";
+    } else if (zone === card.dataset.loesung) {
+      richtig++;
+      card.classList.add("ok");
+      card.setAttribute("aria-disabled", "true");
+      sr.textContent = ", richtig";
+    } else {
+      falsch++;
+      card.classList.add("bad");
+      sr.textContent = ", falsch";
+    }
+    var r = card.querySelector(".reason");
+    if (r) r.hidden = false;
+  });
+  var total = st.cards.length;
+  var text = richtig + " von " + total + " richtig.";
+  if (imStapel > 0) text += " " + imStapel + (imStapel === 1 ? " Karte liegt" : " Karten liegen") + " noch im Stapel.";
+  if (falsch > 0) text += " Verschiebe die roten Karten und prüfe nochmals.";
+  if (richtig === total) text += " Alles richtig.";
+  st.result.textContent = text;
+  if (st.hinweis) st.hinweis.hidden = false;
+}
+
+function mischenArray(a) {
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function mischen(exId) {
+  abwaehlen();
+  var st = exState[exId];
+  var ziel = st.pool.querySelector(".cards");
+  var vorher = Array.prototype.map.call(ziel.children, function (c) { return c.dataset.id; }).join(",");
+  var neu = mischenArray(st.cards.slice());
+  for (var n = 0; n < 5 && neu.map(function (c) { return c.dataset.id; }).join(",") === vorher; n++) neu = mischenArray(neu);
+  neu.forEach(function (card) {
+    card.classList.remove("ok", "bad", "selected", "dragging");
+    card.removeAttribute("aria-disabled");
+    card.querySelector(".sr-state").textContent = "";
+    var r = card.querySelector(".reason");
+    if (r) r.hidden = true;
+    ziel.appendChild(card);
+  });
+  st.result.textContent = "";
+  st.status.textContent = "";
+  if (st.hinweis) st.hinweis.hidden = true;
+}
+
+/* Tabs */
+function tabWechseln(id) {
+  abwaehlen();
+  UEBUNGEN.forEach(function (ex) {
+    var on = ex.id === id;
+    var tab = document.getElementById("tab-" + ex.id);
+    tab.setAttribute("aria-selected", on ? "true" : "false");
+    tab.tabIndex = on ? 0 : -1;
+    exState[ex.id].section.hidden = !on;
+  });
+}
+
+(function init() {
+  var tabs = document.getElementById("tabs");
+  var panels = document.getElementById("panels");
+  UEBUNGEN.forEach(function (ex, i) {
+    var tab = el("button", "tab", ex.tab);
+    tab.type = "button";
+    tab.id = "tab-" + ex.id;
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-controls", "panel-" + ex.id);
+    tab.setAttribute("aria-selected", i === 0 ? "true" : "false");
+    tab.tabIndex = i === 0 ? 0 : -1;
+    tab.addEventListener("click", function () { tabWechseln(ex.id); });
+    tab.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      var k = (i + (e.key === "ArrowRight" ? 1 : UEBUNGEN.length - 1)) % UEBUNGEN.length;
+      tabWechseln(UEBUNGEN[k].id);
+      document.getElementById("tab-" + UEBUNGEN[k].id).focus();
+    });
+    tabs.appendChild(tab);
+    panels.appendChild(buildExercise(ex, i));
+  });
+  UEBUNGEN.forEach(function (ex) { mischen(ex.id); });
+})();
+</script>
+</body>
+</html>
